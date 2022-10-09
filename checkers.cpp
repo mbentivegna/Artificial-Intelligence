@@ -21,29 +21,11 @@
 
 using namespace std;
 
-// //Confirms valid word before sending it to be spellchecked
-// void wordConfirmation(string word, int line, bool hasNum, ofstream &outF, hashTable *dictionaryHash)
-// {
-//     if (hasNum == false) //Number check
-//     {
-//         if(word.length() > 20)  //Length Check
-//         {
-//             outF << "Long word at line " << line << ", starts: " << word.substr(0,20) << "\n";
-//         }
-//         else
-//         {
-//             if (dictionaryHash->contains(word) == false) //See if the word is in the dictionary
-//             {
-//                 outF << "Unknown word at line " << line << ": " << word << "\n";
-//             }
-//         }
-//     }        
-// }
-
 void print_valid_moves(vector<vector<tuple<int, int>>> moves) 
 {
     for (int i = 0; i < moves.size(); i++)
     {
+        cout << i << ".  ";
         for (int j = 0; j < moves[i].size(); j++)
         {
             cout << "(" << get<0>(moves[i][j]) << "," << get<1>(moves[i][j]) << ")";
@@ -60,7 +42,7 @@ tuple<vector<vector<int>>, bool, int> parse_file(string file){
     ifstream inF;
     inF.open(file);
     vector<vector<int>> tmp(8, vector<int> (8, -1));
-    bool black_move = false;
+    bool player1_move = false;
     int time = 0;
 
     string oneLine;
@@ -87,7 +69,7 @@ tuple<vector<vector<int>>, bool, int> parse_file(string file){
         else if (row == 8)
         {
             if (stoi(oneLine) == 1)
-                black_move = true;            
+                player1_move = true;            
         }
         else if (row == 9 )
         {
@@ -97,7 +79,7 @@ tuple<vector<vector<int>>, bool, int> parse_file(string file){
         row++;
     }
 
-    return make_tuple(tmp, black_move, time);
+    return make_tuple(tmp, player1_move, time);
 
 }
 
@@ -106,33 +88,47 @@ int main()
 {
     // vector<vector<int>> i = {0};
     //Ask user for dictionary
-    string custom_board, file;
+    string custom_board, file, runtime, move_first;
 
-
-    cout << "Would you like to start with a custom board position? (Type y for yes)\n";
+    cout << "Would you like to start with a custom board position from a txt file? (Type y for yes)\n";
     cin >> custom_board;
+
+    vector<vector<int>> board;
+    bool player1_move;
+    int time;
 
     if (custom_board == "y")
     {
         cout << "What file would you like to import from?\n";
         cin >> file;
-        vector<vector<int>> board;
-        bool black_move;
-        int time;
+        
 
-        tie(board, black_move, time) = parse_file(file);
-        game g(board, black_move, time);
-        g.print_board();
-        vector<vector<tuple<int, int>>> moves = g.get_valid_moves_black();
-        print_valid_moves(moves);
+        tie(board, player1_move, time) = parse_file(file);
+        
     }
+
     else 
     {
-        game g;
-        g.print_board();
-        vector<vector<tuple<int, int>>> moves = g.get_valid_moves_black();
-        print_valid_moves(moves);
+        cout << "Please enter the computer runtime limit (in seconds):\n";
+        cin >> runtime;
+
+        cout << "Please enter who should move first (Type 1 or 2)\n";
+        cin >> move_first;
+        player1_move = false;
+        if (stoi(move_first) == 1)
+            player1_move = true;
+        time = stoi(runtime);
     }
+    
+    game g(board, player1_move, time);
+
+    g.print_board();
+    if (player1_move)
+        print_valid_moves(g.get_valid_moves_player1());
+    else
+        print_valid_moves(g.get_valid_moves_player2());
+
+
     
 
 

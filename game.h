@@ -21,24 +21,25 @@ class game {
                               {1, -1, 1, -1, 1, -1, 1, -1}
                               };
 
-    // Declared from the start (black_move will alternate after that)
-    bool black_move;
+    // Declared from the start (player1_move will alternate after that)
+    bool player1_move;
     int time_move;
 
 
-    vector<vector<tuple<int, int>>> get_valid_moves_black();
+    vector<vector<tuple<int, int>>> get_valid_moves_player1();
 
-    // Set up base position of board when creating game
-    game();
+    vector<vector<tuple<int, int>>> get_valid_moves_player2();
 
     // Set up custom position of board when creating game
-    game(vector<vector<int>> vect, bool move, int time);
+    game(vector<vector<int>> board, bool move, int time);
 
     // Print current board state
     void print_board();
 
 
+    vector<vector<tuple<int, int>>> get_valid_jumps_player1(vector<vector<int>> board, int i, int j, int piece_val, vector<vector<tuple<int, int>>> current_jumps, vector<tuple<int, int>> tmpVect);
 
+    vector<vector<tuple<int, int>>> get_valid_jumps_player2(vector<vector<int>> board, int i, int j, int piece_val, vector<vector<tuple<int, int>>> current_jumps, vector<tuple<int, int>> tmpVect);
 };
 
 #endif //_GAME_H
