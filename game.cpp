@@ -279,35 +279,48 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player2()
 
 void game::print_board()
 {
-    cout << "              PLAYER 2 \n\n";
-    cout << "     0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 \n";
-    cout << "    -------------------------------\n";
+    cout << "                     PLAYER 2 \n\n";
+    cout << "      0     1     2     3     4     5     6     7 \n\n";
     for (int i = 0; i < 8; i++)
     {
-        cout << i << "  |";
-        for (int j = 0; j < 8; j++)
+        
+        for (int k = 0; k < 3; k++)
         {
-            int tmp = board_state[i][j];
-            if (tmp == -1)
-                cout << "   |";
-            else if (tmp == 0)
-                cout << "   |";
-            else if (tmp == 1) 
-                cout << " O |";
-            else if (tmp == 2)
-                cout << " X |";
-            else if (tmp == 3)
-                cout << " KO|";
-            else if (tmp == 4)
-                cout << " KX|";
+            if (k == 1)
+                cout << " " << i << "  ";
+            else
+                cout << "    ";
+            for (int j = 0; j < 8; j++)
+            {
+                int tmp = board_state[i][j];
+                if (tmp == -1)
+                    cout <<  "\u001b[48;5;140m" <<"      " << "\u001b[0m";
+                else if (tmp == 0 && k == 1)
+                    cout << "      ";
+                else if (tmp == 1 && k == 1) 
+                    cout << "  " << "\u001b[48;5;1m" <<"  " << "\u001b[0m" << "  ";
+                else if (tmp == 2 && k == 1)
+                    cout << "  " << "\u001b[48;5;21m" <<"  " << "\u001b[0m" << "  ";
+                else if (tmp == 3 && k == 1)
+                    cout << "  " << "\u001b[48;5;1m" <<"##" << "\u001b[0m" << "  ";
+                else if (tmp == 4 && k == 1)
+                    cout << "  " << "\u001b[48;5;21m" <<"##" << "\u001b[0m" << "  ";
+                else
+                    cout << "      ";
+            };
+            cout << "\n";
         };
-        cout << "\n    -------------------------------\n";
+        
     };
-    cout << "\n              PLAYER 1 \n ";
+
+
+
+
+    cout << "\n                      PLAYER 1 \n ";
     if(player1_move)
-        cout << "\nIt is Player 1's move (O)\n";
+        cout << "\nIt is Player 1's move ( " << "\u001b[48;5;1m" << "  " << "\u001b[0m" << " )\n\n";
     else
-        cout << "\nIt is Player 2's move (X)\n";
+        cout << "\nIt is Player 2's move ( " << "\u001b[48;5;21m" <<"  " << "\u001b[0m" << " )\n\n";
 
     // cout << "\n" << time_move << "\n";
 }
