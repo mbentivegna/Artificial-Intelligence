@@ -8,7 +8,7 @@ game.o: game.cpp game.h
 	g++ -c game.cpp
 
 debug:
-	g++ -g -o spellDebug.exe checkers.cpp game.cpp
+	g++ -g -o checkersDebug.exe checkers.cpp game.cpp
 
 clean:
 	rm -f *.exe *.o *.stackdump *~

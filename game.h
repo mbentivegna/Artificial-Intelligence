@@ -25,6 +25,11 @@ class game {
     bool player1_move;
     int time_move;
 
+    bool get_whose_move();
+
+    void make_move(vector<tuple<int, int>> move_list);
+
+    vector<vector<tuple<int, int>>> get_moves_given_whose_move(bool move);
 
     vector<vector<tuple<int, int>>> get_valid_moves_player1();
 

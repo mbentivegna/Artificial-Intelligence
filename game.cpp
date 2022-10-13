@@ -17,6 +17,48 @@ using namespace std;
 //-1 never allowed a piece
 // 0 no piece on legal square
 //
+bool game::get_whose_move()
+{
+    return player1_move;
+}
+
+vector<vector<tuple<int, int>>> game::get_moves_given_whose_move(bool move)
+{
+    if (move)
+        return get_valid_moves_player1();
+    else
+        return get_valid_moves_player2();
+}
+
+void game::make_move(vector<tuple<int, int>> move_list)
+{
+    for (int i = 0; i < move_list.size()-1; i++)
+    {
+        int piece = board_state[get<0>(move_list[i])][get<1>(move_list[i])];
+
+        // Jump
+        if (abs(abs(get<0>(move_list[i])) - abs(get<0>(move_list[i+1]))) == 2)
+        {
+            board_state[get<0>(move_list[i])][get<1>(move_list[i])] = 0;
+            board_state[(get<0>(move_list[i]) + get<0>(move_list[i+1])) / 2][(get<1>(move_list[i]) + get<1>(move_list[i+1])) / 2] = 0;
+        }
+        // Non Jump
+        else
+        {
+            board_state[get<0>(move_list[i])][get<1>(move_list[i])] = 0;
+        }
+        board_state[get<0>(move_list[i+1])][get<1>(move_list[i+1])] = piece;
+
+        
+
+        if (piece == 1 && get<0>(move_list[i+1]) == 0 || piece == 2 && get<0>(move_list[i+1]) == 7)
+        {
+            board_state[get<0>(move_list[i+1])][get<1>(move_list[i+1])] += 2;
+        }
+    }
+
+    player1_move = !player1_move;
+}
 
 game::game(vector<vector<int>> board, bool move, int time)
 {   
@@ -279,15 +321,14 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player2()
 
 void game::print_board()
 {
-    cout << "                     PLAYER 2 \n\n";
-    cout << "      0     1     2     3     4     5     6     7 \n\n";
+    cout << "                      " << "\u001b[38;5;21m" << "PLAYER 2\n\n" << "\u001b[0m";
     for (int i = 0; i < 8; i++)
     {
         
         for (int k = 0; k < 3; k++)
         {
             if (k == 1)
-                cout << " " << i << "  ";
+                cout << " " << (8 - i) << "  ";
             else
                 cout << "    ";
             for (int j = 0; j < 8; j++)
@@ -312,15 +353,16 @@ void game::print_board()
         };
         
     };
+    cout << "\n      1     2     3     4     5     6     7     8 \n\n";
 
 
 
 
-    cout << "\n                      PLAYER 1 \n ";
+    cout << "                      " << "\u001b[38;5;1m" << "PLAYER 1 \n" << "\u001b[0m";
     if(player1_move)
-        cout << "\nIt is Player 1's move ( " << "\u001b[48;5;1m" << "  " << "\u001b[0m" << " )\n\n";
+        cout << "\nIt is " << "\u001b[38;5;1m" << "PLAYER 1" << "\u001b[0m" << "'s move\n\n";
     else
-        cout << "\nIt is Player 2's move ( " << "\u001b[48;5;21m" <<"  " << "\u001b[0m" << " )\n\n";
+        cout << "\nIt is " << "\u001b[38;5;21m" << "PLAYER 2" << "\u001b[0m" << "'s move\n\n";
 
     // cout << "\n" << time_move << "\n";
 }

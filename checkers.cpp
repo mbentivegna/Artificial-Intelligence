@@ -25,10 +25,10 @@ void print_valid_moves(vector<vector<tuple<int, int>>> moves)
 {
     for (int i = 0; i < moves.size(); i++)
     {
-        cout << i << ".  ";
+        cout << (i + 1) << ".  ";
         for (int j = 0; j < moves[i].size(); j++)
         {
-            cout << "(" << get<0>(moves[i][j]) << "," << get<1>(moves[i][j]) << ")";
+            cout << "(" << (1 + get<1>(moves[i][j])) << "," << (8 - get<0>(moves[i][j])) << ")";
             if (j != moves[i].size() - 1)
                 cout << " --> ";
             
@@ -83,6 +83,16 @@ tuple<vector<vector<int>>, bool, int> parse_file(string file){
 
 }
 
+void print_winner(bool player1_loser)
+{
+    cout << "   There are no valid moves :(\n\n";
+
+    if (!player1_loser)
+        cout << "\u001b[38;5;1m" << "\n\n\nPLAYER 1 HAS WON CONGRATS!!!\n\n\n" << "\u001b[0m";
+    else
+        cout << "\u001b[38;5;21m" << "\n\n\nPLAYER 2 HAS WON CONGRATS!!!\n\n\n" << "\u001b[0m";
+
+}
 //Mission control
 int main() 
 {
@@ -122,11 +132,32 @@ int main()
     
     game g(board, player1_move, time);
 
-    g.print_board();
-    if (player1_move)
-        print_valid_moves(g.get_valid_moves_player1());
-    else
-        print_valid_moves(g.get_valid_moves_player2());
+    // x axis +1
+    // y axis 8 - i
+    // (x,y)
+
+    while(true) 
+    {
+        bool whose_move = g.get_whose_move();
+        vector<vector<tuple<int, int>>> moves = g.get_moves_given_whose_move(whose_move);
+        g.print_board();
+        if (moves.empty())
+        {
+            print_winner(whose_move);
+            break;
+        }
+        else 
+        {
+            string chosen_move;
+            print_valid_moves(moves);
+            cout << "\n\nPlease select a move to make: \n";
+            cin >> chosen_move;
+            g.make_move(moves[stoi(chosen_move) - 1]);
+        }
+
+    }
+
+
 
 
     

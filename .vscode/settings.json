@@ -6,6 +6,7 @@
         "tuple": "cpp",
         "list": "cpp",
         "utility": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "cstdlib": "cpp"
     }
 }
