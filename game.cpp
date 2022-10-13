@@ -1,9 +1,6 @@
 /*
 Michael Bentivegna
-Hashtable Spellcheck Assignment
-
-    A summary of this project can be found at the top of spellcheck.cpp.  This file implements the hashtable that is used to load the dictionary.
-    It has the ability to rehash based on the number of words the dictionary contains and uses linear probing for collisions.
+Artificial Intelligence 
 */
 
 #include "game.h"

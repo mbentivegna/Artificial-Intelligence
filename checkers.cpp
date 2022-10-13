@@ -1,11 +1,7 @@
 /*
-    Michael Bentivegna
-    Spellcheck Assignment
-
-    This project initially loads a dictionary into a hashtable.  It then takes in a user selected input file to spell check it with the allotted dictionary.
-    If the word is either too long or contains a number it is omitted from the spell check process.  The proper output is then written to a user specified file.
+Michael Bentivegna
+Artificial Intelligence 
 */
-
 
 #include "game.h"
 #include <iostream>
