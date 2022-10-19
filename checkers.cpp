@@ -96,6 +96,14 @@ int main()
     //Ask user for dictionary
     string custom_board, file, runtime, move_first;
 
+    string player1_comp_str, player2_comp_str;
+    cout << "Would you like player 1 to be a computer? (Type y for yes)\n";
+    cin >> player1_comp_str;
+
+    cout << "Would you like player 2 to be a computer? (Type y for yes)\n";
+    cin >> player2_comp_str;
+
+
     cout << "Would you like to start with a custom board position from a txt file? (Type y for yes)\n";
     cin >> custom_board;
 
@@ -144,11 +152,21 @@ int main()
         }
         else 
         {
-            string chosen_move;
-            print_valid_moves(moves);
-            cout << "\n\nPlease select a move to make: \n";
-            cin >> chosen_move;
-            g.make_move(moves[stoi(chosen_move) - 1]);
+            if (player1_comp_str == "y" && whose_move || player2_comp_str == "y" && !whose_move)
+            {
+                cout << "-----WAITING FOR COMPUTER-----\n\n";
+                int chosen = g.get_computer_move();
+                g.make_move(moves[chosen]);
+            }
+            else
+            {
+                string chosen_move;
+                print_valid_moves(moves);
+                cout << "\n\nPlease select a move to make: \n";
+                cin >> chosen_move;
+                g.make_move(moves[stoi(chosen_move) - 1]);
+            }
+
         }
 
     }

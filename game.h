@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <tuple>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
@@ -25,9 +27,12 @@ class game {
     bool player1_move;
     int time_move;
 
-    bool get_whose_move();
 
     void make_move(vector<tuple<int, int>> move_list);
+
+    bool get_whose_move();
+
+    int get_computer_move();
 
     vector<vector<tuple<int, int>>> get_moves_given_whose_move(bool move);
 
@@ -39,7 +44,7 @@ class game {
     game(vector<vector<int>> board, bool move, int time);
 
     // Print current board state
-    void print_board();
+    vector<vector<int>> print_board();
 
 
     vector<vector<tuple<int, int>>> get_valid_jumps_player1(vector<vector<int>> board, int i, int j, int piece_val, vector<vector<tuple<int, int>>> current_jumps, vector<tuple<int, int>> tmpVect);

@@ -8,6 +8,8 @@ Artificial Intelligence
 #include <string>
 #include <vector>
 #include <tuple>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
@@ -26,6 +28,15 @@ vector<vector<tuple<int, int>>> game::get_moves_given_whose_move(bool move)
     else
         return get_valid_moves_player2();
 }
+
+int game::get_computer_move()
+{
+    this_thread::sleep_for(3000ms);
+    int length = get_moves_given_whose_move(player1_move).size();
+
+    return rand() % length;
+}
+
 
 void game::make_move(vector<tuple<int, int>> move_list)
 {
@@ -193,8 +204,13 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player1()
     
     for (int i = 0; i < 8; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int jj = 0; jj < 4; jj++)
         {
+            int j = 2*jj;
+            if(i % 2 == 0)
+                j = 2*jj + 1;
+                
+
             if (board_state[i][j] == 1)
             {
                 if (jumps.empty())
@@ -258,8 +274,12 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player2()
     
     for (int i = 0; i < 8; i++)
     {
-        for (int j = 0; j < 8; j++)
+        for (int jj = 0; jj < 4; jj++)
         {
+            int j = 2*jj;
+            if(i % 2 == 0)
+                j = 2*jj + 1;
+
             if (board_state[i][j] == 2)
             {
                 if (jumps.empty())
@@ -316,7 +336,7 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player2()
     return jumps;
 };
 
-void game::print_board()
+vector<vector<int>> game::print_board()
 {
     cout << "                      " << "\u001b[38;5;21m" << "PLAYER 2\n\n" << "\u001b[0m";
     for (int i = 0; i < 8; i++)
@@ -362,6 +382,8 @@ void game::print_board()
         cout << "\nIt is " << "\u001b[38;5;21m" << "PLAYER 2" << "\u001b[0m" << "'s move\n\n";
 
     // cout << "\n" << time_move << "\n";
+
+    return board_state;
 }
 
 
