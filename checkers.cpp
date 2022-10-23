@@ -143,8 +143,8 @@ int main()
     while(true) 
     {
         bool whose_move = g.get_whose_move();
-        vector<vector<tuple<int, int>>> moves = g.get_moves_given_whose_move(whose_move);
-        g.print_board();
+        vector<vector<tuple<int, int>>> moves = g.get_moves_given_whose_move(whose_move, g.board_state);
+        vector<vector<int>> tmp = g.print_board();
         if (moves.empty())
         {
             print_winner(whose_move);
@@ -152,6 +152,7 @@ int main()
         }
         else 
         {
+            //cout << g.heuristic_function(tmp);
             if (player1_comp_str == "y" && whose_move || player2_comp_str == "y" && !whose_move)
             {
                 cout << "-----WAITING FOR COMPUTER-----\n\n";

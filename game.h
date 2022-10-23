@@ -28,17 +28,29 @@ class game {
     int time_move;
 
 
+    //Alpha beta stuff
+    int get_computer_move();
+
+    vector<vector<int>> make_tmp_move(vector<tuple<int, int>> move_list, vector<vector<int>> board);
+
+    int heuristic_function(vector<vector<int>> board);
+
+    // returns the heuristic function output and its corresponding index
+    tuple<int, int> minimax(vector<vector<int>> board, int depth, bool player1);
+
+
+
+
     void make_move(vector<tuple<int, int>> move_list);
 
     bool get_whose_move();
 
-    int get_computer_move();
 
-    vector<vector<tuple<int, int>>> get_moves_given_whose_move(bool move);
+    vector<vector<tuple<int, int>>> get_moves_given_whose_move(bool move, vector<vector<int>> board);
 
-    vector<vector<tuple<int, int>>> get_valid_moves_player1();
+    vector<vector<tuple<int, int>>> get_valid_moves_player1(vector<vector<int>> board);
 
-    vector<vector<tuple<int, int>>> get_valid_moves_player2();
+    vector<vector<tuple<int, int>>> get_valid_moves_player2(vector<vector<int>> board);
 
     // Set up custom position of board when creating game
     game(vector<vector<int>> board, bool move, int time);

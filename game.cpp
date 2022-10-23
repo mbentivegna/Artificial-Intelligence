@@ -21,21 +21,166 @@ bool game::get_whose_move()
     return player1_move;
 }
 
-vector<vector<tuple<int, int>>> game::get_moves_given_whose_move(bool move)
+vector<vector<tuple<int, int>>> game::get_moves_given_whose_move(bool move, vector<vector<int>> board)
 {
     if (move)
-        return get_valid_moves_player1();
+        return get_valid_moves_player1(board);
     else
-        return get_valid_moves_player2();
+        return get_valid_moves_player2(board);
 }
+
+
 
 int game::get_computer_move()
 {
-    this_thread::sleep_for(3000ms);
-    int length = get_moves_given_whose_move(player1_move).size();
-
-    return rand() % length;
+    
+    int depth = 6;
+    tuple<int, int> heuristic_index = minimax(board_state, depth, player1_move);
+    cout << "\n\n\n Heuristic_Value: " << get<0>(heuristic_index);
+    cout << "\n\n\n Index_Value: " << get<1>(heuristic_index);
+    cout << "\n\n";
+    return get<1>(heuristic_index);
 }
+
+
+tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1)
+{
+    vector<vector<tuple<int, int>>> moves = get_moves_given_whose_move(player1, board);
+    if (depth == 0 || moves.empty())
+    {
+        //cout << heuristic_function(board) << "\n";
+        return make_tuple(heuristic_function(board),-1);
+    }
+
+    if (player1)
+    {
+        int max_eval = -100000000;
+        int index = -1;
+        for (int i = 0; i < moves.size(); i++)
+        {
+            vector<vector<int>> child = make_tmp_move(moves[i], board);
+            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, false);
+            if (get<0>(heuristic_index_tmp) > max_eval)
+            {
+                max_eval = get<0>(heuristic_index_tmp);
+                index = i;
+            }
+            else if (get<0>(heuristic_index_tmp) == max_eval)
+            {
+                if (rand() % 2 == 0)
+                {
+                    max_eval = get<0>(heuristic_index_tmp);
+                    index = i;
+                }
+            }
+        }
+        return make_tuple(max_eval, index);
+    }
+    else
+    {
+        int min_eval = 100000000;
+        int index = -1;
+        for (int i = 0; i < moves.size(); i++)
+        {
+            vector<vector<int>> child = make_tmp_move(moves[i], board);
+            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, true);
+            if (get<0>(heuristic_index_tmp) < min_eval)
+            {
+                min_eval = get<0>(heuristic_index_tmp);
+                index = i;
+            }
+            else if (get<0>(heuristic_index_tmp) == min_eval)
+            {
+                if (rand() % 2 == 0)
+                {
+                    min_eval = get<0>(heuristic_index_tmp);
+                    index = i;
+                }
+            }
+        }
+        return make_tuple(min_eval, index);
+
+    }
+}
+
+
+
+int game::heuristic_function(vector<vector<int>> board)
+{
+    int score = 0;
+    int total_white_pieces = 0;
+    int total_black_pieces = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        for (int jj = 0; jj < 4; jj++)
+        {
+            int j = 2*jj;
+            if(i % 2 == 0)
+                j = 2*jj + 1;
+
+            if (board[i][j] == 1)
+            {
+                score += 30;
+                total_white_pieces++;
+            }
+                
+            else if (board[i][j] == 3)
+            {
+                score += 50;
+                total_white_pieces++;
+            }
+            else if (board[i][j] == 2)
+            {
+                score -= 30;
+                total_black_pieces++;
+            }
+            else if (board[i][j] == 4)
+            {
+                score -= 50;
+                total_black_pieces++;
+            }
+        }
+    }
+    if (total_black_pieces == 0)
+        score += 1000000;
+    else if (total_white_pieces == 0)
+        score -= 1000000;
+
+    return score;
+}
+
+vector<vector<int>> game::make_tmp_move(vector<tuple<int, int>> move_list, vector<vector<int>> board)
+{
+    for (int i = 0; i < move_list.size()-1; i++)
+    {
+        int piece = board[get<0>(move_list[i])][get<1>(move_list[i])];
+
+        // Jump
+        if (abs(abs(get<0>(move_list[i])) - abs(get<0>(move_list[i+1]))) == 2)
+        {
+            board[get<0>(move_list[i])][get<1>(move_list[i])] = 0;
+            board[(get<0>(move_list[i]) + get<0>(move_list[i+1])) / 2][(get<1>(move_list[i]) + get<1>(move_list[i+1])) / 2] = 0;
+        }
+        // Non Jump
+        else
+        {
+            board[get<0>(move_list[i])][get<1>(move_list[i])] = 0;
+        }
+        board[get<0>(move_list[i+1])][get<1>(move_list[i+1])] = piece;
+
+        
+
+        if (piece == 1 && get<0>(move_list[i+1]) == 0 || piece == 2 && get<0>(move_list[i+1]) == 7)
+        {
+            board[get<0>(move_list[i+1])][get<1>(move_list[i+1])] += 2;
+        }
+    }
+
+    return board;
+}
+
+
+
 
 
 void game::make_move(vector<tuple<int, int>> move_list)
@@ -197,7 +342,7 @@ vector<vector<tuple<int, int>>> game::get_valid_jumps_player2(vector<vector<int>
     
 }
 
-vector<vector<tuple<int, int>>> game::get_valid_moves_player1()
+vector<vector<tuple<int, int>>> game::get_valid_moves_player1(vector<vector<int>> board)
 {
     vector<vector<tuple<int, int>>> jumps;
     vector<vector<tuple<int, int>>> regular;
@@ -211,42 +356,42 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player1()
                 j = 2*jj + 1;
                 
 
-            if (board_state[i][j] == 1)
+            if (board[i][j] == 1)
             {
                 if (jumps.empty())
                 {
                     //find valid non jump moves
-                    if (i - 1 >= 0 && j - 1 >= 0 && board_state[i - 1][j - 1] == 0) {
+                    if (i - 1 >= 0 && j - 1 >= 0 && board[i - 1][j - 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i - 1, j - 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i - 1 >= 0 && j + 1 <= 7 && board_state[i - 1][j + 1] == 0) {
+                    if (i - 1 >= 0 && j + 1 <= 7 && board[i - 1][j + 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i - 1, j + 1}};
                         regular.push_back(tmpVect);
                     }
                 }
 
                 vector<tuple<int, int>> tmpVect = {{i, j}};
-                jumps = get_valid_jumps_player1(board_state, i, j, board_state[i][j], jumps, tmpVect);
+                jumps = get_valid_jumps_player1(board, i, j, board[i][j], jumps, tmpVect);
             }
-            else if (board_state[i][j] == 3)
+            else if (board[i][j] == 3)
             {
                 if (jumps.empty())
                 {
                     //find valid non jump moves
-                    if (i - 1 >= 0 && j - 1 >= 0 && board_state[i - 1][j - 1] == 0) {
+                    if (i - 1 >= 0 && j - 1 >= 0 && board[i - 1][j - 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i - 1, j - 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i - 1 >= 0 && j + 1 <= 7 && board_state[i - 1][j + 1] == 0) {
+                    if (i - 1 >= 0 && j + 1 <= 7 && board[i - 1][j + 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i - 1, j + 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i + 1 <= 7 && j + 1 <= 7 && board_state[i + 1][j + 1] == 0) {
+                    if (i + 1 <= 7 && j + 1 <= 7 && board[i + 1][j + 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i + 1, j + 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i + 1 <= 7 && j - 1 >= 0 && board_state[i + 1][j - 1] == 0) {
+                    if (i + 1 <= 7 && j - 1 >= 0 && board[i + 1][j - 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i + 1, j - 1}};
                         regular.push_back(tmpVect);
                     }
@@ -255,7 +400,7 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player1()
 
                 //find valid jumps moves for kings always
                 vector<tuple<int, int>> tmpVect = {{i, j}};
-                jumps = get_valid_jumps_player1(board_state, i, j, board_state[i][j], jumps, tmpVect);
+                jumps = get_valid_jumps_player1(board, i, j, board[i][j], jumps, tmpVect);
             }
         };
     };
@@ -267,7 +412,7 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player1()
     return jumps;
 };
 
-vector<vector<tuple<int, int>>> game::get_valid_moves_player2()
+vector<vector<tuple<int, int>>> game::get_valid_moves_player2(vector<vector<int>> board)
 {
     vector<vector<tuple<int, int>>> jumps;
     vector<vector<tuple<int, int>>> regular;
@@ -280,42 +425,42 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player2()
             if(i % 2 == 0)
                 j = 2*jj + 1;
 
-            if (board_state[i][j] == 2)
+            if (board[i][j] == 2)
             {
                 if (jumps.empty())
                 {
                     //find valid non jump moves
-                    if (i + 1 >= 0 && j - 1 >= 0 && board_state[i + 1][j - 1] == 0) {
+                    if (i + 1 >= 0 && j - 1 >= 0 && board[i + 1][j - 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i + 1, j - 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i + 1 >= 0 && j + 1 <= 7 && board_state[i + 1][j + 1] == 0) {
+                    if (i + 1 >= 0 && j + 1 <= 7 && board[i + 1][j + 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i + 1, j + 1}};
                         regular.push_back(tmpVect);
                     }
                 }
 
                 vector<tuple<int, int>> tmpVect = {{i, j}};
-                jumps = get_valid_jumps_player2(board_state, i, j, board_state[i][j], jumps, tmpVect);
+                jumps = get_valid_jumps_player2(board, i, j, board[i][j], jumps, tmpVect);
             }
-            else if (board_state[i][j] == 4)
+            else if (board[i][j] == 4)
             {
                 if (jumps.empty())
                 {
                     //find valid non jump moves
-                    if (i - 1 >= 0 && j - 1 >= 0 && board_state[i - 1][j - 1] == 0) {
+                    if (i - 1 >= 0 && j - 1 >= 0 && board[i - 1][j - 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i - 1, j - 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i - 1 >= 0 && j + 1 <= 7 && board_state[i - 1][j + 1] == 0) {
+                    if (i - 1 >= 0 && j + 1 <= 7 && board[i - 1][j + 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i - 1, j + 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i + 1 <= 7 && j + 1 <= 7 && board_state[i + 1][j + 1] == 0) {
+                    if (i + 1 <= 7 && j + 1 <= 7 && board[i + 1][j + 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i + 1, j + 1}};
                         regular.push_back(tmpVect);
                     }
-                    if (i + 1 <= 7 && j - 1 >= 0 && board_state[i + 1][j - 1] == 0) {
+                    if (i + 1 <= 7 && j - 1 >= 0 && board[i + 1][j - 1] == 0) {
                         vector<tuple<int, int>> tmpVect = {{i, j}, {i + 1, j - 1}};
                         regular.push_back(tmpVect);
                     }
@@ -324,7 +469,7 @@ vector<vector<tuple<int, int>>> game::get_valid_moves_player2()
 
                 //find valid jumps moves for kings always
                 vector<tuple<int, int>> tmpVect = {{i, j}};
-                jumps = get_valid_jumps_player2(board_state, i, j, board_state[i][j], jumps, tmpVect);
+                jumps = get_valid_jumps_player2(board, i, j, board[i][j], jumps, tmpVect);
             }
         };
     };
