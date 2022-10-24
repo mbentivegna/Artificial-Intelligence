@@ -36,7 +36,7 @@ class game {
     int heuristic_function(vector<vector<int>> board);
 
     // returns the heuristic function output and its corresponding index
-    tuple<int, int> minimax(vector<vector<int>> board, int depth, bool player1);
+    tuple<int, int> minimax(vector<vector<int>> board, int depth, bool player1, int alpha, int beta);
 
 
 

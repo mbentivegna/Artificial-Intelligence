@@ -10,6 +10,7 @@ Artificial Intelligence
 #include <tuple>
 #include <thread>
 #include <chrono>
+#include <ctime>
 
 using namespace std;
 
@@ -33,17 +34,28 @@ vector<vector<tuple<int, int>>> game::get_moves_given_whose_move(bool move, vect
 
 int game::get_computer_move()
 {
-    
-    int depth = 6;
-    tuple<int, int> heuristic_index = minimax(board_state, depth, player1_move);
-    cout << "\n\n\n Heuristic_Value: " << get<0>(heuristic_index);
-    cout << "\n\n\n Index_Value: " << get<1>(heuristic_index);
-    cout << "\n\n";
+    clock_t c_start = clock();
+    if(get_moves_given_whose_move(player1_move, board_state).size() == 1)
+    {
+        cout << ((double)(clock() - c_start) / CLOCKS_PER_SEC);
+        return 0;
+    }
+
+    int i = 1;
+    tuple<int, int> heuristic_index = make_tuple(0, 0);
+    while(((double)(clock() - c_start) / CLOCKS_PER_SEC) < (double)time_move/2)
+    {
+        heuristic_index = minimax(board_state, i, player1_move, -100000000, 100000000);
+        cout << "Searching to Depth: " << i << "\n";
+        cout << "Heuristic Ouput: " << get<0>(heuristic_index) << "\n";
+        i++;
+    }
+    cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC) << "\n";
     return get<1>(heuristic_index);
 }
 
 
-tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1)
+tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1, int alpha, int beta)
 {
     vector<vector<tuple<int, int>>> moves = get_moves_given_whose_move(player1, board);
     if (depth == 0 || moves.empty())
@@ -59,7 +71,7 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
         for (int i = 0; i < moves.size(); i++)
         {
             vector<vector<int>> child = make_tmp_move(moves[i], board);
-            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, false);
+            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, false, alpha, beta);
             if (get<0>(heuristic_index_tmp) > max_eval)
             {
                 max_eval = get<0>(heuristic_index_tmp);
@@ -69,10 +81,16 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
             {
                 if (rand() % 2 == 0)
                 {
-                    max_eval = get<0>(heuristic_index_tmp);
                     index = i;
                 }
             }
+
+            if (alpha < get<0>(heuristic_index_tmp))
+                alpha = get<0>(heuristic_index_tmp);
+
+            if (beta <= alpha)
+                return make_tuple(max_eval + 10, index);
+
         }
         return make_tuple(max_eval, index);
     }
@@ -83,7 +101,7 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
         for (int i = 0; i < moves.size(); i++)
         {
             vector<vector<int>> child = make_tmp_move(moves[i], board);
-            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, true);
+            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, true, alpha, beta);
             if (get<0>(heuristic_index_tmp) < min_eval)
             {
                 min_eval = get<0>(heuristic_index_tmp);
@@ -93,10 +111,15 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
             {
                 if (rand() % 2 == 0)
                 {
-                    min_eval = get<0>(heuristic_index_tmp);
                     index = i;
                 }
             }
+
+            if (beta > get<0>(heuristic_index_tmp))
+                beta = get<0>(heuristic_index_tmp);
+
+            if (beta <= alpha)
+                return make_tuple(min_eval - 10, index);
         }
         return make_tuple(min_eval, index);
 
@@ -146,7 +169,7 @@ int game::heuristic_function(vector<vector<int>> board)
     else if (total_white_pieces == 0)
         score -= 1000000;
 
-    return score;
+    return score + (rand() % 11) - 5;
 }
 
 vector<vector<int>> game::make_tmp_move(vector<tuple<int, int>> move_list, vector<vector<int>> board)
