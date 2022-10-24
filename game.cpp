@@ -1,6 +1,11 @@
 /*
 Michael Bentivegna
 Artificial Intelligence 
+
+Things to fix:
+-Make hard cap at time limit
+-Fix Heuristic for endgames
+-Have game choose shortest path to victory
 */
 
 #include "game.h"
@@ -37,7 +42,7 @@ int game::get_computer_move()
     clock_t c_start = clock();
     if(get_moves_given_whose_move(player1_move, board_state).size() == 1)
     {
-        cout << ((double)(clock() - c_start) / CLOCKS_PER_SEC);
+        cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC);
         return 0;
     }
 
@@ -49,6 +54,9 @@ int game::get_computer_move()
         cout << "Searching to Depth: " << i << "\n";
         cout << "Heuristic Ouput: " << get<0>(heuristic_index) << "\n";
         i++;
+
+        if (abs(get<0>(heuristic_index)) > 900000)
+            break;
     }
     cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC) << "\n";
     return get<1>(heuristic_index);
