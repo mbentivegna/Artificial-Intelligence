@@ -92,8 +92,8 @@ void print_winner(bool player1_loser)
 //Mission control
 int main() 
 {
-    // vector<vector<int>> i = {0};
-    //Ask user for dictionary
+    
+    srand(time(NULL));
     string custom_board, file, runtime, move_first;
 
     string player1_comp_str, player2_comp_str;

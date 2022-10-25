@@ -4,8 +4,7 @@ Artificial Intelligence
 
 Things to fix:
 -Make hard cap at time limit
--Fix Heuristic for endgames
--Have game choose shortest path to victory
+
 */
 
 #include "game.h"
@@ -47,6 +46,7 @@ int game::get_computer_move()
     }
 
     int i = 1;
+
     tuple<int, int> heuristic_index = make_tuple(0, 0);
     while(((double)(clock() - c_start) / CLOCKS_PER_SEC) < (double)time_move/2)
     {
@@ -55,7 +55,7 @@ int game::get_computer_move()
         cout << "Heuristic Ouput: " << get<0>(heuristic_index) << "\n";
         i++;
 
-        if (abs(get<0>(heuristic_index)) > 900000)
+        if (abs(get<0>(heuristic_index)) > 900000 && i > 10)
             break;
     }
     cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC) << "\n";
@@ -66,10 +66,11 @@ int game::get_computer_move()
 tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1, int alpha, int beta)
 {
     vector<vector<tuple<int, int>>> moves = get_moves_given_whose_move(player1, board);
+    
     if (depth == 0 || moves.empty())
     {
         //cout << heuristic_function(board) << "\n";
-        return make_tuple(heuristic_function(board),-1);
+        return make_tuple(heuristic_function(board, depth, true), -1);
     }
 
     if (player1)
@@ -80,6 +81,8 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
         {
             vector<vector<int>> child = make_tmp_move(moves[i], board);
             tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, false, alpha, beta);
+            // if(firstTime)
+            //         cout << "  " << get<0>(heuristic_index_tmp) << "\n";
             if (get<0>(heuristic_index_tmp) > max_eval)
             {
                 max_eval = get<0>(heuristic_index_tmp);
@@ -87,7 +90,8 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
             }
             else if (get<0>(heuristic_index_tmp) == max_eval)
             {
-                if (rand() % 2 == 0)
+                int test = rand() % (moves.size() - 1);
+                if (test == 0)
                 {
                     index = i;
                 }
@@ -97,7 +101,9 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
                 alpha = get<0>(heuristic_index_tmp);
 
             if (beta <= alpha)
-                return make_tuple(max_eval + 10, index);
+            {
+                return make_tuple(max_eval + 1, index);
+            }
 
         }
         return make_tuple(max_eval, index);
@@ -110,6 +116,8 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
         {
             vector<vector<int>> child = make_tmp_move(moves[i], board);
             tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, true, alpha, beta);
+            // if(firstTime)
+            //         cout << "  " << get<0>(heuristic_index_tmp) << "\n";
             if (get<0>(heuristic_index_tmp) < min_eval)
             {
                 min_eval = get<0>(heuristic_index_tmp);
@@ -117,7 +125,8 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
             }
             else if (get<0>(heuristic_index_tmp) == min_eval)
             {
-                if (rand() % 2 == 0)
+                int test = rand() % (moves.size() - 1);
+                if (test == 0)
                 {
                     index = i;
                 }
@@ -127,16 +136,20 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
                 beta = get<0>(heuristic_index_tmp);
 
             if (beta <= alpha)
-                return make_tuple(min_eval - 10, index);
+            {
+                return make_tuple(min_eval - 1, index);
+            }
         }
+
         return make_tuple(min_eval, index);
 
     }
+    
 }
 
 
 
-int game::heuristic_function(vector<vector<int>> board)
+int game::heuristic_function(vector<vector<int>> board, int depth, bool current_board_check)
 {
     int score = 0;
     int total_white_pieces = 0;
@@ -151,33 +164,168 @@ int game::heuristic_function(vector<vector<int>> board)
 
             if (board[i][j] == 1)
             {
-                score += 30;
+                score += 300;
                 total_white_pieces++;
             }
                 
             else if (board[i][j] == 3)
             {
-                score += 50;
+                score += 500;
                 total_white_pieces++;
             }
             else if (board[i][j] == 2)
             {
-                score -= 30;
+                score -= 300;
                 total_black_pieces++;
             }
             else if (board[i][j] == 4)
             {
-                score -= 50;
+                score -= 500;
                 total_black_pieces++;
             }
         }
     }
-    if (total_black_pieces == 0)
-        score += 1000000;
-    else if (total_white_pieces == 0)
-        score -= 1000000;
 
-    return score + (rand() % 11) - 5;
+    //Endgames
+    if (total_white_pieces + total_black_pieces < 12)
+    {
+        for (int i = 0; i < 8; i++)
+        {
+            for (int jj = 0; jj < 4; jj++)
+            {
+                int j = 2*jj;
+                if(i % 2 == 0)
+                    j = 2*jj + 1;
+
+                if (board[i][j] == 1)
+                {
+                    score += (8 - i) * 10;
+                }        
+                else if (board[i][j] == 3)
+                {
+                    score += 100;
+                }
+                else if (board[i][j] == 2)
+                {
+                    score -= i * 10;
+                }
+                else if (board[i][j] == 4)
+                {
+                    score -= 100;
+
+                }
+            }
+        }    
+
+        // 1 if white winning, 2 if black winning in the current board state
+        // See if you are winning in the end game if so then trade if possible
+        int winning = 0;
+        if(current_board_check)
+        {
+            int checker = heuristic_function(board_state, 0, false);
+            if(checker > 200)
+            {
+                score -= 10 * (total_black_pieces + total_white_pieces);
+                if(board[1][0] == 4)
+                    score -= 30;
+                if(board[0][1] == 4)
+                    score -= 30;
+                if(board[7][6] == 4)
+                    score -= 30;
+                if(board[6][7] == 4)
+                    score -= 30;
+
+                //minimize distance to all other kings
+                if(total_black_pieces + total_white_pieces < 6)
+                {
+                    int total_distance = 0;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        for (int jj = 0; jj < 4; jj++)
+                        {
+                            int j = 2*jj;
+                            if(i % 2 == 0)
+                                j = 2*jj + 1;
+
+                            if (board[i][j] == 3)
+                            {
+                                for (int q = 0; q < 8; q++)
+                                {
+                                    for (int rr = 0; rr < 4; rr++)
+                                    {
+                                        int r = 2*rr;
+                                        if(q % 2 == 0)
+                                            r = 2*rr + 1;
+
+                                        if (board[q][r] == 4)
+                                        {
+                                            total_distance += ((abs(i-q) + abs(j-r)));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }  
+
+                    score -= 10 * total_distance; 
+                }
+            }
+            else if(checker < -200)
+            {
+                score += 10 * (total_black_pieces + total_white_pieces);
+                if(board[1][0] == 3)
+                    score += 30;
+                if(board[0][1] == 3)
+                    score += 30;
+                if(board[7][6] == 3)
+                    score += 30;
+                if(board[6][7] == 3)
+                    score += 30;
+
+                if(total_black_pieces + total_white_pieces < 7)
+                {
+                    int total_distance = 0;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        for (int jj = 0; jj < 4; jj++)
+                        {
+                            int j = 2*jj;
+                            if(i % 2 == 0)
+                                j = 2*jj + 1;
+
+                            if (board[i][j] == 4)
+                            {
+                                for (int q = 0; q < 8; q++)
+                                {
+                                    for (int rr = 0; rr < 4; rr++)
+                                    {
+                                        int r = 2*rr;
+                                        if(q % 2 == 0)
+                                            r = 2*rr + 1;
+
+                                        if (board[q][r] == 3)
+                                        {
+                                            total_distance += ((abs(i-q) + abs(j-r)));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }  
+                    score += 10 * total_distance; 
+                }
+            }
+        }
+
+    }
+
+
+    if (total_black_pieces == 0)
+        score += (10000000 + (10000 * depth));
+    else if (total_white_pieces == 0)
+        score -= (10000000 + (10000 * depth));
+
+    return score + rand() % 31 - 15;
 }
 
 vector<vector<int>> game::make_tmp_move(vector<tuple<int, int>> move_list, vector<vector<int>> board)
@@ -210,10 +358,6 @@ vector<vector<int>> game::make_tmp_move(vector<tuple<int, int>> move_list, vecto
     return board;
 }
 
-
-
-
-
 void game::make_move(vector<tuple<int, int>> move_list)
 {
     for (int i = 0; i < move_list.size()-1; i++)
@@ -242,6 +386,7 @@ void game::make_move(vector<tuple<int, int>> move_list)
     }
 
     player1_move = !player1_move;
+    move_num++;
 }
 
 game::game(vector<vector<int>> board, bool move, int time)

@@ -26,6 +26,7 @@ class game {
     // Declared from the start (player1_move will alternate after that)
     bool player1_move;
     int time_move;
+    int move_num = 0;
 
 
     //Alpha beta stuff
@@ -33,13 +34,10 @@ class game {
 
     vector<vector<int>> make_tmp_move(vector<tuple<int, int>> move_list, vector<vector<int>> board);
 
-    int heuristic_function(vector<vector<int>> board);
+    int heuristic_function(vector<vector<int>> board, int total_depth, bool current_board_check);
 
     // returns the heuristic function output and its corresponding index
     tuple<int, int> minimax(vector<vector<int>> board, int depth, bool player1, int alpha, int beta);
-
-
-
 
     void make_move(vector<tuple<int, int>> move_list);
 
