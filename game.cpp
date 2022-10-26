@@ -2,8 +2,7 @@
 Michael Bentivegna
 Artificial Intelligence 
 
-Things to fix:
--Make hard cap at time limit
+End Games Better but still take too long in 2v1 kings (only thing left to fix)
 
 */
 
@@ -41,36 +40,54 @@ int game::get_computer_move()
     clock_t c_start = clock();
     if(get_moves_given_whose_move(player1_move, board_state).size() == 1)
     {
-        cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC);
+        cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC) << "\n";
+        cout << "Depth Searched: 0" << "\n\n\n";
         return 0;
     }
 
     int i = 1;
 
-    tuple<int, int> heuristic_index = make_tuple(0, 0);
-    while(((double)(clock() - c_start) / CLOCKS_PER_SEC) < (double)time_move/2)
+    tuple<int, int, bool> heuristic_index = make_tuple(0, 0, false);
+    while(true)
     {
-        heuristic_index = minimax(board_state, i, player1_move, -100000000, 100000000);
-        cout << "Searching to Depth: " << i << "\n";
-        cout << "Heuristic Ouput: " << get<0>(heuristic_index) << "\n";
+        tuple<int, int, bool> tmp = minimax(board_state, i, player1_move, -100000000, 100000000, c_start);
+        // cout << get<0>(tmp) << "  " << get<1>(tmp) << "  " << get<2>(tmp) << "\n";
+        if(get<2>(tmp))
+        {
+
+            break;
+        }
+        else
+        {
+            heuristic_index = tmp;
+            cout << "Heuristic: " << get<0>(heuristic_index) << "\n";
+        }
         i++;
 
-        if (abs(get<0>(heuristic_index)) > 900000 && i > 10)
+
+
+        if (abs(get<0>(heuristic_index)) > 900000)
             break;
     }
     cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC) << "\n";
+    cout << "Depth Searched: " << i - 1 << "\n\n\n";
     return get<1>(heuristic_index);
 }
 
 
-tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1, int alpha, int beta)
+tuple<int, int, bool> game::minimax(vector<vector<int>> board, int depth, bool player1, int alpha, int beta, clock_t start_time)
 {
+    if (((double)(clock() - start_time) / CLOCKS_PER_SEC) > time_move - .05)
+    {
+        return make_tuple(-1, -1, true);
+    }
+
     vector<vector<tuple<int, int>>> moves = get_moves_given_whose_move(player1, board);
     
     if (depth == 0 || moves.empty())
     {
         //cout << heuristic_function(board) << "\n";
-        return make_tuple(heuristic_function(board, depth, true), -1);
+        return make_tuple(heuristic_function(board, depth, true), -1, false);
     }
 
     if (player1)
@@ -78,9 +95,9 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
         int max_eval = -100000000;
         int index = -1;
         for (int i = 0; i < moves.size(); i++)
-        {
+        {           
             vector<vector<int>> child = make_tmp_move(moves[i], board);
-            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, false, alpha, beta);
+            tuple<int, int, bool> heuristic_index_tmp = minimax(child, depth - 1, false, alpha, beta, start_time);
             // if(firstTime)
             //         cout << "  " << get<0>(heuristic_index_tmp) << "\n";
             if (get<0>(heuristic_index_tmp) > max_eval)
@@ -102,11 +119,15 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
 
             if (beta <= alpha)
             {
-                return make_tuple(max_eval + 1, index);
+                return make_tuple(max_eval + 1, index, false);
             }
 
         }
-        return make_tuple(max_eval, index);
+        if (((double)(clock() - start_time) / CLOCKS_PER_SEC) > time_move - .05)
+        {
+            return make_tuple(-1, -1, true);
+        }
+        return make_tuple(max_eval, index, false);
     }
     else
     {
@@ -115,7 +136,7 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
         for (int i = 0; i < moves.size(); i++)
         {
             vector<vector<int>> child = make_tmp_move(moves[i], board);
-            tuple<int, int> heuristic_index_tmp = minimax(child, depth - 1, true, alpha, beta);
+            tuple<int, int, bool> heuristic_index_tmp = minimax(child, depth - 1, true, alpha, beta, start_time);
             // if(firstTime)
             //         cout << "  " << get<0>(heuristic_index_tmp) << "\n";
             if (get<0>(heuristic_index_tmp) < min_eval)
@@ -125,7 +146,7 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
             }
             else if (get<0>(heuristic_index_tmp) == min_eval)
             {
-                int test = rand() % (moves.size() - 1);
+                int test = rand() % (moves.size() / 2);
                 if (test == 0)
                 {
                     index = i;
@@ -137,11 +158,14 @@ tuple<int, int> game::minimax(vector<vector<int>> board, int depth, bool player1
 
             if (beta <= alpha)
             {
-                return make_tuple(min_eval - 1, index);
+                return make_tuple(min_eval - 1, index, false);
             }
         }
-
-        return make_tuple(min_eval, index);
+        if (((double)(clock() - start_time) / CLOCKS_PER_SEC) > time_move - .05)
+        {
+            return make_tuple(-1, -1, true);
+        }
+        return make_tuple(min_eval, index, false);
 
     }
     
@@ -226,19 +250,23 @@ int game::heuristic_function(vector<vector<int>> board, int depth, bool current_
             if(checker > 200)
             {
                 score -= 10 * (total_black_pieces + total_white_pieces);
-                if(board[1][0] == 4)
-                    score -= 30;
-                if(board[0][1] == 4)
-                    score -= 30;
-                if(board[7][6] == 4)
-                    score -= 30;
-                if(board[6][7] == 4)
-                    score -= 30;
-
-                //minimize distance to all other kings
                 if(total_black_pieces + total_white_pieces < 6)
                 {
+                    if(board[1][0] == 4)
+                        score -= 30;
+                    if(board[0][1] == 4)
+                        score -= 30;
+                    if(board[7][6] == 4)
+                        score -= 30;
+                    if(board[6][7] == 4)
+                        score -= 30;
+                }
+
+                //minimize distance to all other kings
+                if(total_black_pieces + total_white_pieces < 8)
+                {
                     int total_distance = 0;
+                    int bring_loser_towards_center = 0;
                     for (int i = 0; i < 8; i++)
                     {
                         for (int jj = 0; jj < 4; jj++)
@@ -264,27 +292,37 @@ int game::heuristic_function(vector<vector<int>> board, int depth, bool current_
                                     }
                                 }
                             }
+                            // If 1 king vs 2 this will help pull out the hiding king
+                            if (board[i][j] == 4 && total_black_pieces + total_white_pieces < 4)
+                            {
+                                bring_loser_towards_center += (abs(3-i) + abs(3-j));
+                            }
                         }
                     }  
-
                     score -= 10 * total_distance; 
+                    score -= 10 * bring_loser_towards_center;
                 }
             }
             else if(checker < -200)
             {
                 score += 10 * (total_black_pieces + total_white_pieces);
-                if(board[1][0] == 3)
-                    score += 30;
-                if(board[0][1] == 3)
-                    score += 30;
-                if(board[7][6] == 3)
-                    score += 30;
-                if(board[6][7] == 3)
-                    score += 30;
 
                 if(total_black_pieces + total_white_pieces < 7)
                 {
+                    if(board[1][0] == 3)
+                        score += 30;
+                    if(board[0][1] == 3)
+                        score += 30;
+                    if(board[7][6] == 3)
+                        score += 30;
+                    if(board[6][7] == 3)
+                        score += 30;
+                }
+
+                if(total_black_pieces + total_white_pieces < 8)
+                {
                     int total_distance = 0;
+                    int bring_loser_towards_center = 0;
                     for (int i = 0; i < 8; i++)
                     {
                         for (int jj = 0; jj < 4; jj++)
@@ -310,9 +348,15 @@ int game::heuristic_function(vector<vector<int>> board, int depth, bool current_
                                     }
                                 }
                             }
+                            // If 1 king vs 2 this will help pull out the hiding king
+                            if (board[i][j] == 3 && total_black_pieces + total_white_pieces < 4)
+                            {
+                                bring_loser_towards_center += abs(3-i) + abs(3-j);
+                            }
                         }
                     }  
                     score += 10 * total_distance; 
+                    score += 10 * bring_loser_towards_center;
                 }
             }
         }
@@ -389,7 +433,7 @@ void game::make_move(vector<tuple<int, int>> move_list)
     move_num++;
 }
 
-game::game(vector<vector<int>> board, bool move, int time)
+game::game(vector<vector<int>> board, bool move, double time)
 {   
     if (!board.empty())
     {

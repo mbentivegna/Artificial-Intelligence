@@ -94,7 +94,7 @@ int main()
 {
     
     srand(time(NULL));
-    string custom_board, file, runtime, move_first;
+    string custom_board, file, move_first;
 
     string player1_comp_str, player2_comp_str;
     cout << "Would you like player 1 to be a computer? (Type y for yes)\n";
@@ -109,7 +109,7 @@ int main()
 
     vector<vector<int>> board;
     bool player1_move;
-    int time;
+    double time;
 
     if (custom_board == "y")
     {
@@ -124,14 +124,42 @@ int main()
     else 
     {
         cout << "Please enter the computer runtime limit (in seconds):\n";
-        cin >> runtime;
+        cin >> time;
+        while(true)
+        {
+            if (!cin)
+            {
+                cout << "You input an invalid runtime. Please try again: \n";
+            }
+            else
+            {
+                break;
+            }
+            cin.clear();
+            cin.ignore(1000,'\n');
+            cin >> time;
+        }
 
         cout << "Please enter who should move first (Type 1 or 2)\n";
         cin >> move_first;
-        player1_move = false;
-        if (stoi(move_first) == 1)
-            player1_move = true;
-        time = stoi(runtime);
+        while(true)
+        {
+            if(move_first == "1")
+            {
+                player1_move = true;
+                break;
+            }
+            else if (move_first == "2")
+            {
+                player1_move = false;
+                break;
+            }
+            else
+            {
+                cout << "Invalid Starting User... Please enter who should move first (Type 1 or 2)\n";
+                cin >> move_first;
+            }
+        }
     }
     
     game g(board, player1_move, time);
@@ -155,35 +183,38 @@ int main()
             //cout << g.heuristic_function(tmp);
             if (player1_comp_str == "y" && whose_move || player2_comp_str == "y" && !whose_move)
             {
+                print_valid_moves(moves);
                 cout << "-----WAITING FOR COMPUTER-----\n\n";
                 int chosen = g.get_computer_move();
                 g.make_move(moves[chosen]);
             }
             else
             {
-                string chosen_move;
                 print_valid_moves(moves);
+                int chosen_move;
+                int num_valid_moves = moves.size();
                 cout << "\n\nPlease select a move to make: \n";
                 cin >> chosen_move;
-                g.make_move(moves[stoi(chosen_move) - 1]);
+                while(true)
+                {
+                    if (!cin || chosen_move < 1 || chosen_move > num_valid_moves)
+                    {
+                        cout << "You input an invalid move. Please try again: \n";
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    cin.clear();
+                    cin.ignore(1000,'\n');
+                    cin >> chosen_move;
+                }
+                g.make_move(moves[chosen_move - 1]);
             }
 
         }
 
     }
-
-
-
-
-    
-
-
-    // //Call function to spellcheck the input file's words and record the time
-    // c_start = clock();
-    // parseText(inputFile, outputFile, dictionaryHash);
-    // c_end = clock();
-    // time_elapsed_s = ((double)(c_end-c_start)) / CLOCKS_PER_SEC;
-    // cout << "Time Elapsed to Parse Input: " << time_elapsed_s << " s\n";
     
     return 0;
 }
