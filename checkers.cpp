@@ -1,6 +1,8 @@
 /*
 Michael Bentivegna
 Artificial Intelligence 
+Checkers
+
 */
 
 #include "game.h"
@@ -33,13 +35,13 @@ void print_valid_moves(vector<vector<tuple<int, int>>> moves)
     }
 }
 
-tuple<vector<vector<int>>, bool, int> parse_file(string file){
+tuple<vector<vector<int>>, bool, double> parse_file(string file){
 
     ifstream inF;
     inF.open(file);
     vector<vector<int>> tmp(8, vector<int> (8, -1));
     bool player1_move = false;
-    int time = 0;
+    double time = 0;
 
     string oneLine;
     int row = 0;
@@ -69,7 +71,7 @@ tuple<vector<vector<int>>, bool, int> parse_file(string file){
         }
         else if (row == 9 )
         {
-            time = stoi(oneLine);
+            time = stod(oneLine);
         }
         
         row++;
@@ -164,18 +166,19 @@ int main()
     
     game g(board, player1_move, time);
 
-    // x axis +1
-    // y axis 8 - i
-    // (x,y)
-
     while(true) 
     {
-        bool whose_move = g.get_whose_move();
+        bool whose_move = g.player1_move;
         vector<vector<tuple<int, int>>> moves = g.get_moves_given_whose_move(whose_move, g.board_state);
         vector<vector<int>> tmp = g.print_board();
         if (moves.empty())
         {
             print_winner(whose_move);
+            break;
+        }
+        else if (g.draw_checker >= 80)
+        {
+            cout << "\u001b[38;5;13m" << "\n\n\nIT IS A DRAW BY 40 MOVE RULE!!!\n\n\n" << "\u001b[0m";
             break;
         }
         else 
@@ -184,6 +187,7 @@ int main()
             if (player1_comp_str == "y" && whose_move || player2_comp_str == "y" && !whose_move)
             {
                 print_valid_moves(moves);
+                //cout << g.draw_checker;
                 cout << "-----WAITING FOR COMPUTER-----\n\n";
                 int chosen = g.get_computer_move();
                 g.make_move(moves[chosen]);

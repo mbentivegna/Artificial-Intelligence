@@ -1,8 +1,7 @@
 /*
 Michael Bentivegna
 Artificial Intelligence 
-
-End Games Better but still take too long in 2v1 kings (only thing left to fix)
+Checkers
 
 */
 
@@ -14,16 +13,9 @@ End Games Better but still take too long in 2v1 kings (only thing left to fix)
 #include <thread>
 #include <chrono>
 #include <ctime>
+#include <algorithm>
 
 using namespace std;
-
-//-1 never allowed a piece
-// 0 no piece on legal square
-//
-bool game::get_whose_move()
-{
-    return player1_move;
-}
 
 vector<vector<tuple<int, int>>> game::get_moves_given_whose_move(bool move, vector<vector<int>> board)
 {
@@ -33,7 +25,49 @@ vector<vector<tuple<int, int>>> game::get_moves_given_whose_move(bool move, vect
         return get_valid_moves_player2(board);
 }
 
+bool game::two_on_one_endgame()
+{
+    int total_pieces = 0;
+    int p1_kings = 0;
+    for (int i = 0; i < 8; i++)
+    {
+        for (int jj = 0; jj < 4; jj++)
+        {
+            int j = 2*jj;
+            if(i % 2 == 0)
+                j = 2*jj + 1;
 
+            if (board_state[i][j] == 1)
+            {
+                return false;
+            }
+                
+            else if (board_state[i][j] == 3)
+            {
+                total_pieces++;
+                p1_kings++;
+            }
+            else if (board_state[i][j] == 2)
+            {
+                return false;
+            }
+            else if (board_state[i][j] == 4)
+            {
+                total_pieces++;
+            }
+        }
+    }
+
+    if (total_pieces == 3)
+    {
+        if ((p1_kings == 2 && player1_move) || (p1_kings == 1 && !player1_move))
+        {
+            return true;
+        }
+    }
+    
+    return false;
+}
 
 int game::get_computer_move()
 {
@@ -48,32 +82,66 @@ int game::get_computer_move()
     int i = 1;
 
     tuple<int, int, bool> heuristic_index = make_tuple(0, 0, false);
+    bool two_on_one = two_on_one_endgame();
+    vector<int> list_moves;
     while(true)
     {
         tuple<int, int, bool> tmp = minimax(board_state, i, player1_move, -100000000, 100000000, c_start);
         // cout << get<0>(tmp) << "  " << get<1>(tmp) << "  " << get<2>(tmp) << "\n";
         if(get<2>(tmp))
         {
-
             break;
         }
         else
         {
             heuristic_index = tmp;
+            list_moves.push_back(get<1>(heuristic_index));
             cout << "Heuristic: " << get<0>(heuristic_index) << "\n";
+            cout << "Move: " << get<1>(heuristic_index) << "\n";
         }
         i++;
 
-
-
         if (abs(get<0>(heuristic_index)) > 900000)
             break;
+
     }
+
     cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC) << "\n";
     cout << "Depth Searched: " << i - 1 << "\n\n\n";
+
+    //return mode in special 2 on 1 case
+    if (two_on_one && i > 10 && abs(get<0>(heuristic_index)) < 900000)
+    {
+        sort(list_moves.begin(), list_moves.end());
+
+        int val = list_moves[0];
+        int mode = val;
+        int count = 1;
+        int countMode = 1;
+
+        for(int i = 1; i < list_moves.size(); i++)
+        {
+            if (list_moves[i] == val)
+            {
+                count++;
+
+                if (count > countMode)
+                {
+                    countMode = count;
+                    mode = val;
+                }
+            }
+            else
+            {
+                val = list_moves[i];
+                count = 1;
+            }
+        }
+        return mode;
+    }
+
     return get<1>(heuristic_index);
 }
-
 
 tuple<int, int, bool> game::minimax(vector<vector<int>> board, int depth, bool player1, int alpha, int beta, clock_t start_time)
 {
@@ -87,7 +155,7 @@ tuple<int, int, bool> game::minimax(vector<vector<int>> board, int depth, bool p
     if (depth == 0 || moves.empty())
     {
         //cout << heuristic_function(board) << "\n";
-        return make_tuple(heuristic_function(board, depth, true), -1, false);
+        return make_tuple(heuristic_function(board, depth), -1, false);
     }
 
     if (player1)
@@ -171,13 +239,12 @@ tuple<int, int, bool> game::minimax(vector<vector<int>> board, int depth, bool p
     
 }
 
-
-
-int game::heuristic_function(vector<vector<int>> board, int depth, bool current_board_check)
+int game::heuristic_function(vector<vector<int>> board, int depth)
 {
     int score = 0;
     int total_white_pieces = 0;
     int total_black_pieces = 0;
+    int whose_winning = 0;
     for (int i = 0; i < 8; i++)
     {
         for (int jj = 0; jj < 4; jj++)
@@ -209,6 +276,8 @@ int game::heuristic_function(vector<vector<int>> board, int depth, bool current_
             }
         }
     }
+    
+    whose_winning = score;
 
     //Endgames
     if (total_white_pieces + total_black_pieces < 12)
@@ -241,123 +310,118 @@ int game::heuristic_function(vector<vector<int>> board, int depth, bool current_
             }
         }    
 
-        // 1 if white winning, 2 if black winning in the current board state
-        // See if you are winning in the end game if so then trade if possible
-        int winning = 0;
-        if(current_board_check)
+    // 1 if white winning, 2 if black winning in the current board state
+    // See if you are winning in the end game if so then trade if possible
+        if(whose_winning >= 200)
         {
-            int checker = heuristic_function(board_state, 0, false);
-            if(checker > 200)
+            score -= 10 * (total_black_pieces + total_white_pieces);
+            if(total_black_pieces + total_white_pieces < 6)
             {
-                score -= 10 * (total_black_pieces + total_white_pieces);
-                if(total_black_pieces + total_white_pieces < 6)
-                {
-                    if(board[1][0] == 4)
-                        score -= 30;
-                    if(board[0][1] == 4)
-                        score -= 30;
-                    if(board[7][6] == 4)
-                        score -= 30;
-                    if(board[6][7] == 4)
-                        score -= 30;
-                }
-
-                //minimize distance to all other kings
-                if(total_black_pieces + total_white_pieces < 8)
-                {
-                    int total_distance = 0;
-                    int bring_loser_towards_center = 0;
-                    for (int i = 0; i < 8; i++)
-                    {
-                        for (int jj = 0; jj < 4; jj++)
-                        {
-                            int j = 2*jj;
-                            if(i % 2 == 0)
-                                j = 2*jj + 1;
-
-                            if (board[i][j] == 3)
-                            {
-                                for (int q = 0; q < 8; q++)
-                                {
-                                    for (int rr = 0; rr < 4; rr++)
-                                    {
-                                        int r = 2*rr;
-                                        if(q % 2 == 0)
-                                            r = 2*rr + 1;
-
-                                        if (board[q][r] == 4)
-                                        {
-                                            total_distance += ((abs(i-q) + abs(j-r)));
-                                        }
-                                    }
-                                }
-                            }
-                            // If 1 king vs 2 this will help pull out the hiding king
-                            if (board[i][j] == 4 && total_black_pieces + total_white_pieces < 4)
-                            {
-                                bring_loser_towards_center += (abs(3-i) + abs(3-j));
-                            }
-                        }
-                    }  
-                    score -= 10 * total_distance; 
-                    score -= 10 * bring_loser_towards_center;
-                }
+                if(board[1][0] == 4)
+                    score -= 30;
+                if(board[0][1] == 4)
+                    score -= 30;
+                if(board[7][6] == 4)
+                    score -= 30;
+                if(board[6][7] == 4)
+                    score -= 30;
             }
-            else if(checker < -200)
+
+            //minimize distance to all other kings
+            if(total_black_pieces + total_white_pieces < 8)
             {
-                score += 10 * (total_black_pieces + total_white_pieces);
-
-                if(total_black_pieces + total_white_pieces < 7)
+                int total_distance = 0;
+                int bring_loser_towards_center = 0;
+                for (int i = 0; i < 8; i++)
                 {
-                    if(board[1][0] == 3)
-                        score += 30;
-                    if(board[0][1] == 3)
-                        score += 30;
-                    if(board[7][6] == 3)
-                        score += 30;
-                    if(board[6][7] == 3)
-                        score += 30;
-                }
-
-                if(total_black_pieces + total_white_pieces < 8)
-                {
-                    int total_distance = 0;
-                    int bring_loser_towards_center = 0;
-                    for (int i = 0; i < 8; i++)
+                    for (int jj = 0; jj < 4; jj++)
                     {
-                        for (int jj = 0; jj < 4; jj++)
+                        int j = 2*jj;
+                        if(i % 2 == 0)
+                            j = 2*jj + 1;
+
+                        if (board[i][j] == 3)
                         {
-                            int j = 2*jj;
-                            if(i % 2 == 0)
-                                j = 2*jj + 1;
-
-                            if (board[i][j] == 4)
+                            for (int q = 0; q < 8; q++)
                             {
-                                for (int q = 0; q < 8; q++)
+                                for (int rr = 0; rr < 4; rr++)
                                 {
-                                    for (int rr = 0; rr < 4; rr++)
-                                    {
-                                        int r = 2*rr;
-                                        if(q % 2 == 0)
-                                            r = 2*rr + 1;
+                                    int r = 2*rr;
+                                    if(q % 2 == 0)
+                                        r = 2*rr + 1;
 
-                                        if (board[q][r] == 3)
-                                        {
-                                            total_distance += ((abs(i-q) + abs(j-r)));
-                                        }
+                                    if (board[q][r] == 4)
+                                    {
+                                        total_distance += ((abs(i-q) + abs(j-r)));
                                     }
                                 }
                             }
-                            // If 1 king vs 2 this will help pull out the hiding king
-                            if (board[i][j] == 3 && total_black_pieces + total_white_pieces < 4)
+                        }
+                        // If 1 king vs 2 this will help pull out the hiding king
+                        if (board[i][j] == 4 && total_black_pieces + total_white_pieces < 4)
+                        {
+                            bring_loser_towards_center += (abs(3-i) + abs(3-j));
+                        }
+                    }
+                }  
+                score -= 10 * total_distance; 
+                score -= 5 * bring_loser_towards_center;
+            }
+        }
+        else if(whose_winning <= -200)
+        {
+            score += 10 * (total_black_pieces + total_white_pieces);
+
+            if(total_black_pieces + total_white_pieces < 7)
+            {
+                if(board[1][0] == 3)
+                    score += 30;
+                if(board[0][1] == 3)
+                    score += 30;
+                if(board[7][6] == 3)
+                    score += 30;
+                if(board[6][7] == 3)
+                    score += 30;
+            }
+
+            if(total_black_pieces + total_white_pieces < 8)
+            {
+                int total_distance = 0;
+                int bring_loser_towards_center = 0;
+                for (int i = 0; i < 8; i++)
+                {
+                    for (int jj = 0; jj < 4; jj++)
+                    {
+                        int j = 2*jj;
+                        if(i % 2 == 0)
+                            j = 2*jj + 1;
+
+                        if (board[i][j] == 4)
+                        {
+                            for (int q = 0; q < 8; q++)
                             {
-                                bring_loser_towards_center += abs(3-i) + abs(3-j);
+                                for (int rr = 0; rr < 4; rr++)
+                                {
+                                    int r = 2*rr;
+                                    if(q % 2 == 0)
+                                        r = 2*rr + 1;
+
+                                    if (board[q][r] == 3)
+                                    {
+                                        total_distance += ((abs(i-q) + abs(j-r)));
+                                    }
+                                }
                             }
                         }
-                    }  
-                    score += 10 * total_distance; 
-                    score += 10 * bring_loser_towards_center;
-                }
+                        // If 1 king vs 2 this will help pull out the hiding king
+                        if (board[i][j] == 3 && total_black_pieces + total_white_pieces < 4)
+                        {
+                            bring_loser_towards_center += abs(3-i) + abs(3-j);
+                        }
+                    }
+                }  
+                score += 10 * total_distance; 
+                score += 5 * bring_loser_towards_center;
             }
         }
 
@@ -404,6 +468,7 @@ vector<vector<int>> game::make_tmp_move(vector<tuple<int, int>> move_list, vecto
 
 void game::make_move(vector<tuple<int, int>> move_list)
 {
+    draw_checker++;
     for (int i = 0; i < move_list.size()-1; i++)
     {
         int piece = board_state[get<0>(move_list[i])][get<1>(move_list[i])];
@@ -411,6 +476,7 @@ void game::make_move(vector<tuple<int, int>> move_list)
         // Jump
         if (abs(abs(get<0>(move_list[i])) - abs(get<0>(move_list[i+1]))) == 2)
         {
+            draw_checker = 0;
             board_state[get<0>(move_list[i])][get<1>(move_list[i])] = 0;
             board_state[(get<0>(move_list[i]) + get<0>(move_list[i+1])) / 2][(get<1>(move_list[i]) + get<1>(move_list[i+1])) / 2] = 0;
         }
@@ -430,7 +496,6 @@ void game::make_move(vector<tuple<int, int>> move_list)
     }
 
     player1_move = !player1_move;
-    move_num++;
 }
 
 game::game(vector<vector<int>> board, bool move, double time)
