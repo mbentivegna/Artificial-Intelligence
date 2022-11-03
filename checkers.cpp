@@ -2,7 +2,6 @@
 Michael Bentivegna
 Artificial Intelligence 
 Checkers
-
 */
 
 #include "game.h"
@@ -19,6 +18,7 @@ Checkers
 
 using namespace std;
 
+// Print a list of all valid moves in easy to read format for the user
 void print_valid_moves(vector<vector<tuple<int, int>>> moves) 
 {
     for (int i = 0; i < moves.size(); i++)
@@ -35,6 +35,7 @@ void print_valid_moves(vector<vector<tuple<int, int>>> moves)
     }
 }
 
+// Parse input file for board state, whose move it is, and how much time the computer is given
 tuple<vector<vector<int>>, bool, double> parse_file(string file){
 
     ifstream inF;
@@ -81,6 +82,7 @@ tuple<vector<vector<int>>, bool, double> parse_file(string file){
 
 }
 
+// Print the winner in their proper color
 void print_winner(bool player1_loser)
 {
     cout << "   There are no valid moves :(\n\n";
@@ -91,11 +93,14 @@ void print_winner(bool player1_loser)
         cout << "\u001b[38;5;21m" << "\n\n\nPLAYER 2 HAS WON CONGRATS!!!\n\n\n" << "\u001b[0m";
 
 }
+
 //Mission control
 int main() 
 {
-    
+    // Random number generator seeding
     srand(time(NULL));
+
+    //Get information about the board
     string custom_board, file, move_first;
 
     string player1_comp_str, player2_comp_str;
@@ -164,13 +169,16 @@ int main()
         }
     }
     
+    // Initialize game object
     game g(board, player1_move, time);
 
+    // Make moves until game ends or draw
     while(true) 
     {
         bool whose_move = g.player1_move;
         vector<vector<tuple<int, int>>> moves = g.get_moves_given_whose_move(whose_move, g.board_state);
-        vector<vector<int>> tmp = g.print_board();
+        g.print_board();
+
         if (moves.empty())
         {
             print_winner(whose_move);
@@ -183,10 +191,9 @@ int main()
         }
         else 
         {
-            //cout << g.heuristic_function(tmp);
             if (player1_comp_str == "y" && whose_move || player2_comp_str == "y" && !whose_move)
             {
-                print_valid_moves(moves);
+                //print_valid_moves(moves);
                 //cout << g.draw_checker;
                 cout << "-----WAITING FOR COMPUTER-----\n\n";
                 int chosen = g.get_computer_move();
@@ -215,9 +222,7 @@ int main()
                 }
                 g.make_move(moves[chosen_move - 1]);
             }
-
         }
-
     }
     
     return 0;

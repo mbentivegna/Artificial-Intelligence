@@ -2,7 +2,6 @@
 Michael Bentivegna
 Artificial Intelligence 
 Checkers
-
 */
 
 #include "game.h"
@@ -96,8 +95,8 @@ int game::get_computer_move()
         {
             heuristic_index = tmp;
             list_moves.push_back(get<1>(heuristic_index));
-            cout << "Heuristic: " << get<0>(heuristic_index) << "\n";
-            cout << "Move: " << get<1>(heuristic_index) << "\n";
+            // cout << "Heuristic: " << get<0>(heuristic_index) << "\n";
+            // cout << "Move: " << get<1>(heuristic_index) << "\n";
         }
         i++;
 

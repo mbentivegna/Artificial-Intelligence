@@ -2,7 +2,6 @@
 Michael Bentivegna
 Artificial Intelligence 
 Checkers
-
 */
 
 #ifndef _GAME_H
@@ -86,7 +85,7 @@ class game {
     // However, only moves that end in a position not eligible for another double jump are returned (see the checker variable)
     vector<vector<tuple<int, int>>> get_valid_jumps_player1(vector<vector<int>> board, int i, int j, int piece_val, vector<vector<tuple<int, int>>> current_jumps, vector<tuple<int, int>> tmpVect);
     vector<vector<tuple<int, int>>> get_valid_jumps_player2(vector<vector<int>> board, int i, int j, int piece_val, vector<vector<tuple<int, int>>> current_jumps, vector<tuple<int, int>> tmpVect);
-    
+
 };
 
 #endif //_GAME_H
