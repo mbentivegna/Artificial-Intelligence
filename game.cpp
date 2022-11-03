@@ -467,7 +467,6 @@ vector<vector<int>> game::make_tmp_move(vector<tuple<int, int>> move_list, vecto
 
 void game::make_move(vector<tuple<int, int>> move_list)
 {
-    draw_checker++;
     for (int i = 0; i < move_list.size()-1; i++)
     {
         int piece = board_state[get<0>(move_list[i])][get<1>(move_list[i])];
@@ -475,7 +474,6 @@ void game::make_move(vector<tuple<int, int>> move_list)
         // Jump
         if (abs(abs(get<0>(move_list[i])) - abs(get<0>(move_list[i+1]))) == 2)
         {
-            draw_checker = 0;
             board_state[get<0>(move_list[i])][get<1>(move_list[i])] = 0;
             board_state[(get<0>(move_list[i]) + get<0>(move_list[i+1])) / 2][(get<1>(move_list[i]) + get<1>(move_list[i+1])) / 2] = 0;
         }

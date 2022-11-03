@@ -172,7 +172,7 @@ int main()
     // Initialize game object
     game g(board, player1_move, time);
 
-    // Make moves until game ends or draw
+    // Make moves until game ends
     while(true) 
     {
         bool whose_move = g.player1_move;
@@ -182,11 +182,6 @@ int main()
         if (moves.empty())
         {
             print_winner(whose_move);
-            break;
-        }
-        else if (g.draw_checker >= 80)
-        {
-            cout << "\u001b[38;5;13m" << "\n\n\nIT IS A DRAW BY 40 MOVE RULE!!!\n\n\n" << "\u001b[0m";
             break;
         }
         else 

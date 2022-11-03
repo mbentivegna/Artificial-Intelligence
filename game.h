@@ -36,9 +36,6 @@ class game {
     // Time for computer to move
     double time_move;
 
-    // To check if it is a draw after 40 moves (80 half moves) without a capture
-    int draw_checker = 0;
-
     // Initialize custom board, move timing, and whose move it is to start
     game(vector<vector<int>> board, bool move, double time);
 
