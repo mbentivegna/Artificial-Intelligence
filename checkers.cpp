@@ -83,9 +83,10 @@ tuple<vector<vector<int>>, bool, double> parse_file(string file){
 }
 
 // Print the winner in their proper color
-void print_winner(bool player1_loser)
+void print_winner(bool player1_loser, bool resigned)
 {
-    cout << "   There are no valid moves :(\n\n";
+    if (!resigned)
+        cout << "   There are no valid moves :(\n\n";
 
     if (!player1_loser)
         cout << "\u001b[38;5;1m" << "\n\n\nPLAYER 1 HAS WON CONGRATS!!!\n\n\n" << "\u001b[0m";
@@ -181,7 +182,7 @@ int main()
 
         if (moves.empty())
         {
-            print_winner(whose_move);
+            print_winner(whose_move, false);
             break;
         }
         else 
@@ -205,7 +206,23 @@ int main()
                 {
                     if (!cin || chosen_move < 1 || chosen_move > num_valid_moves)
                     {
-                        cout << "You input an invalid move. Please try again: \n";
+                        if (chosen_move == -1)
+                        {
+                            string resign;
+                            cout << "Are you sure you want to resign the game? (Type y to resign)\n";
+                            cin >> resign;
+                            if (resign == "y")
+                            {
+                                cout << "THE GAME HAS BEEN RESIGNED\n";
+                                print_winner(whose_move, true);
+                                return 0;
+                            }
+                            else
+                                cout << "You have chosen not to resign. Please input a valid move:\n";
+
+                        }
+                        else
+                            cout << "You input an invalid move. Please try again: \n";
                     }
                     else
                     {

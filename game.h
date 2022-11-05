@@ -56,7 +56,7 @@ class game {
 
     // Heuristic for evaluating a current position
     // Positive values indicate that player 1 is winning
-    int heuristic_function(vector<vector<int>> board, int total_depth);
+    int heuristic_function(vector<vector<int>> board, int total_depth, bool player1_turn);
 
     // Min and max function combined into 1
     // Recursively calls itself to a provided depth limit

@@ -82,6 +82,7 @@ int game::get_computer_move()
 
     tuple<int, int, bool> heuristic_index = make_tuple(0, 0, false);
     bool two_on_one = two_on_one_endgame();
+    bool cutoff = false;
     vector<int> list_moves;
     while(true)
     {
@@ -89,6 +90,7 @@ int game::get_computer_move()
         // cout << get<0>(tmp) << "  " << get<1>(tmp) << "  " << get<2>(tmp) << "\n";
         if(get<2>(tmp))
         {
+            cutoff = true;
             break;
         }
         else
@@ -106,25 +108,29 @@ int game::get_computer_move()
     }
 
     cout << "Time: " << ((double)(clock() - c_start) / CLOCKS_PER_SEC) << "\n";
-    cout << "Depth Searched: " << i - 1 << "\n\n\n";
-
+    cout << "Depth Searched: " << i - 1;
+    if (cutoff)
+        cout << " (Depth " << i << " was only partially searched)\n\n\n";
+    else
+        cout << "\n\n\n";
+        
     //return mode in special 2 on 1 case
-    if (two_on_one && i > 10 && abs(get<0>(heuristic_index)) < 900000)
+    if (two_on_one && i > 8 && abs(get<0>(heuristic_index)) < 900000)
     {
         sort(list_moves.begin(), list_moves.end());
 
-        int val = list_moves[0];
+        int val = list_moves[1];
         int mode = val;
         int count = 1;
         int countMode = 1;
 
-        for(int i = 1; i < list_moves.size(); i++)
+        for(int i = 2; i < list_moves.size(); i++)
         {
             if (list_moves[i] == val)
             {
                 count++;
 
-                if (count > countMode)
+                if (count >= countMode)
                 {
                     countMode = count;
                     mode = val;
@@ -154,7 +160,7 @@ tuple<int, int, bool> game::minimax(vector<vector<int>> board, int depth, bool p
     if (depth == 0 || moves.empty())
     {
         //cout << heuristic_function(board) << "\n";
-        return make_tuple(heuristic_function(board, depth), -1, false);
+        return make_tuple(heuristic_function(board, depth, player1), -1, false);
     }
 
     if (player1)
@@ -238,7 +244,7 @@ tuple<int, int, bool> game::minimax(vector<vector<int>> board, int depth, bool p
     
 }
 
-int game::heuristic_function(vector<vector<int>> board, int depth)
+int game::heuristic_function(vector<vector<int>> board, int depth, bool player1_turn)
 {
     int score = 0;
     int total_white_pieces = 0;
@@ -327,7 +333,7 @@ int game::heuristic_function(vector<vector<int>> board, int depth)
             }
 
             //minimize distance to all other kings
-            if(total_black_pieces + total_white_pieces < 8)
+            if(total_black_pieces + total_white_pieces < 10)
             {
                 int total_distance = 0;
                 int bring_loser_towards_center = 0;
@@ -383,7 +389,7 @@ int game::heuristic_function(vector<vector<int>> board, int depth)
                     score += 30;
             }
 
-            if(total_black_pieces + total_white_pieces < 8)
+            if(total_black_pieces + total_white_pieces < 10)
             {
                 int total_distance = 0;
                 int bring_loser_towards_center = 0;
@@ -426,10 +432,10 @@ int game::heuristic_function(vector<vector<int>> board, int depth)
 
     }
 
-
-    if (total_black_pieces == 0)
+    // FIXXXXXXXXXXXXXXXX
+    if (!player1_turn && get_moves_given_whose_move(player1_turn, board).empty())
         score += (10000000 + (10000 * depth));
-    else if (total_white_pieces == 0)
+    else if (player1_turn && get_moves_given_whose_move(player1_turn, board).empty())
         score -= (10000000 + (10000 * depth));
 
     return score + rand() % 31 - 15;
