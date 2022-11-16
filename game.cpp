@@ -219,7 +219,7 @@ tuple<int, int, bool> game::minimax(vector<vector<int>> board, int depth, bool p
             }
             else if (get<0>(heuristic_index_tmp) == min_eval)
             {
-                int test = rand() % (moves.size() / 2);
+                int test = rand() % (moves.size() - 1);
                 if (test == 0)
                 {
                     index = i;
