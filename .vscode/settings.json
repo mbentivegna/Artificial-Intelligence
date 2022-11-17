@@ -6,6 +6,7 @@
         "tuple": "cpp",
         "iosfwd": "cpp",
         "string": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "iomanip": "cpp"
     }
 }
