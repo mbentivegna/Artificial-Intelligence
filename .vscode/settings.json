@@ -1,23 +1,11 @@
 {
     "files.associations": {
-        "iostream": "cpp",
         "vector": "cpp",
-        "xstring": "cpp",
+        "chrono": "cpp",
+        "iostream": "cpp",
         "tuple": "cpp",
-        "list": "cpp",
-        "utility": "cpp",
-        "ostream": "cpp",
-        "cstdlib": "cpp",
-        "thread": "cpp",
-        "array": "cpp",
-        "format": "cpp",
-        "istream": "cpp",
-        "memory": "cpp",
-        "type_traits": "cpp",
-        "xlocmes": "cpp",
-        "xlocmon": "cpp",
-        "xlocnum": "cpp",
-        "xloctime": "cpp",
-        "xutility": "cpp"
+        "iosfwd": "cpp",
+        "string": "cpp",
+        "algorithm": "cpp"
     }
 }
