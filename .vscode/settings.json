@@ -7,6 +7,7 @@
         "iosfwd": "cpp",
         "string": "cpp",
         "algorithm": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "xstring": "cpp"
     }
 }

@@ -27,6 +27,14 @@ neural_network::neural_network(vector<vector<double>> input_data, vector<vector<
     learning_rate = lr;
 }
 
+neural_network::neural_network(vector<vector<double>> input_data, vector<vector<double>> weight_1, vector<vector<double>> weight_2, vector<vector<int>> outputs)
+{
+    input = input_data;
+    w1 = weight_1;
+    w2 = weight_2;
+    bool_outputs = outputs;
+}
+
 double neural_network::sigmoid(double x)
 {
     return 1 / (1 + exp(-x));
@@ -122,5 +130,62 @@ tuple<vector<vector<double>>, vector<vector<double>>> neural_network::train_netw
     }
 
     return make_tuple(w1, w2);
+}
 
+vector<vector<int>> neural_network::test_network()
+{
+    vector<vector<double>> complete_output;
+    for(int s = 0; s < input.size(); s++)
+    {
+        // ------ Forward Propagation ------
+        // Get hidden layer
+        vector<double> sample = input[s];
+        vector<double> hidden_layer(w1.size());
+        for(int j = 0; j < w1.size(); j++)
+        {
+            double summation_input_to_hidden_j = w1[j][0] * (-1);
+            for(int i = 0; i < sample.size(); i++)
+            {
+                summation_input_to_hidden_j += sample[i] * w1[j][i+1];
+            }
+            hidden_layer[j] = sigmoid(summation_input_to_hidden_j);
+        }
+        // Get output layer
+        vector<double> output_layer(w2.size());
+        for(int j = 0; j < w2.size(); j++)
+        {
+            double summation_hidden_to_output_j = w2[j][0] * (-1);
+            for(int i = 0; i < hidden_layer.size(); i++)
+            {
+                summation_hidden_to_output_j += hidden_layer[i] * w2[j][i+1];
+            }
+            output_layer[j] = sigmoid(summation_hidden_to_output_j);
+        }
+        complete_output.push_back(output_layer);
+    }
+    
+    // Find A B C D for each category (A is true positive, B is false positive, C is false negative, D is true negative)
+    // Each column is the A, B, C, D value for that class respectively
+    // Each row is a class
+    vector<vector<int>> abcd;
+    for(int i = 0; i < complete_output[0].size(); i++)
+    {
+        vector<int> abcd_one_class = {0, 0, 0, 0};
+
+        for(int j = 0; j < complete_output.size(); j++)
+        {
+            if (complete_output[j][i] >= .5 && bool_outputs[j][i] == 1)
+                abcd_one_class[0]++;
+            else if (complete_output[j][i] >= .5 && bool_outputs[j][i] == 0)
+                abcd_one_class[1]++;
+            else if (complete_output[j][i] < .5 && bool_outputs[j][i] == 1)
+                abcd_one_class[2]++;
+            else
+                abcd_one_class[3]++;
+        }
+        abcd.push_back(abcd_one_class);
+    }
+    
+    
+    return abcd;
 }
