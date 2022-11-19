@@ -27,36 +27,40 @@ int main()
     ofstream outF;
     outF.open("my_dataset/iw.txt");
 
+    // Layer sizes
     int input_layer = 4;
     int hidden_layer = 20;
     int output_layer = 1;
 
+    // Print first line about layers
     outF << input_layer << " " << hidden_layer << " " << output_layer << "\n";
     outF << setprecision(3) << fixed;
 
+    // Print randomized w1
     for (int i = 0; i < hidden_layer; i++)
     {
-        // need +1 for the bias
+        // Need +1 for the bias
         for(int j = 0; j < input_layer + 1; j++)
         {
             if (j != 0)
                 outF << " ";
-                outF << (double)rand() / (double)RAND_MAX;
-        }
-        outF << "\n";
-    }
-    for (int i = 0; i < output_layer; i++)
-    {
-        // need +1 for the bias
-        for(int j = 0; j < hidden_layer + 1; j++)
-        {
-            if (j != 0)
-                outF << " ";
-                outF << (double)rand() / (double)RAND_MAX;
+            outF << (double)rand() / (double)RAND_MAX;
         }
         outF << "\n";
     }
 
+    // Print randomized w2
+    for (int i = 0; i < output_layer; i++)
+    {
+        // Need +1 for the bias
+        for(int j = 0; j < hidden_layer + 1; j++)
+        {
+            if (j != 0)
+                outF << " ";
+            outF << (double)rand() / (double)RAND_MAX;
+        }
+        outF << "\n";
+    }
 
     return 0;
 }

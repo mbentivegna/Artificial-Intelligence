@@ -47,10 +47,6 @@ double neural_network::sigmoid_derivative(double x)
 
 tuple<vector<vector<double>>, vector<vector<double>>> neural_network::train_network()
 {
-
-    // cout << w2.size();
-    // cout << w1.size();
-
     // loop through epochs
     for(int e = 0; e < epochs; e++)
     {
@@ -58,10 +54,11 @@ tuple<vector<vector<double>>, vector<vector<double>>> neural_network::train_netw
         for(int s = 0; s < input.size(); s++)
         {
             // ------ Forward Propagation ------
-            // Get hidden layer
             vector<double> sample = input[s];
             vector<double> hidden_layer(w1.size());
             vector<double> hidden_layer_without_act(w1.size());
+
+            // Get hidden layer
             for(int j = 0; j < w1.size(); j++)
             {
                 double summation_input_to_hidden_j = w1[j][0] * (-1);
@@ -87,16 +84,16 @@ tuple<vector<vector<double>>, vector<vector<double>>> neural_network::train_netw
             }
 
             // ------ Back Propagation ------ 
-            // For delta storage
             vector<double> delta_j(w2.size());
             vector<double> delta_i(w1.size());
             vector<int> output = bool_outputs[s];
+
             // Get delta of output nodes
             for(int j = 0; j < output_layer.size(); j++)
             {
                 delta_j[j] = sigmoid_derivative(output_layer_without_activation[j]) * (output[j] - output_layer[j]);
             }
-            //Get delta of hidden nodes
+            // Get delta of hidden nodes
             for(int i = 0; i < hidden_layer.size(); i++)
             {
                 double tmp = 0;
@@ -108,7 +105,6 @@ tuple<vector<vector<double>>, vector<vector<double>>> neural_network::train_netw
             }
 
             // Update weights
-            // For w2
             for(int j = 0; j < w2.size(); j++)
             {
                 w2[j][0] = w2[j][0] + learning_rate * (-1) * delta_j[j];
@@ -134,13 +130,15 @@ tuple<vector<vector<double>>, vector<vector<double>>> neural_network::train_netw
 
 vector<vector<int>> neural_network::test_network()
 {
+    // Declare 2d network predictions
     vector<vector<double>> complete_output;
+
+    // Loop through samples and propagate them through the network
     for(int s = 0; s < input.size(); s++)
     {
-        // ------ Forward Propagation ------
-        // Get hidden layer
         vector<double> sample = input[s];
         vector<double> hidden_layer(w1.size());
+
         for(int j = 0; j < w1.size(); j++)
         {
             double summation_input_to_hidden_j = w1[j][0] * (-1);
@@ -150,7 +148,6 @@ vector<vector<int>> neural_network::test_network()
             }
             hidden_layer[j] = sigmoid(summation_input_to_hidden_j);
         }
-        // Get output layer
         vector<double> output_layer(w2.size());
         for(int j = 0; j < w2.size(); j++)
         {
@@ -164,9 +161,9 @@ vector<vector<int>> neural_network::test_network()
         complete_output.push_back(output_layer);
     }
     
-    // Find A B C D for each category (A is true positive, B is false positive, C is false negative, D is true negative)
-    // Each column is the A, B, C, D value for that class respectively
+    // Find A B C D for each category
     // Each row is a class
+    // Columns are the A, B, C, D values, respectively
     vector<vector<int>> abcd;
     for(int i = 0; i < complete_output[0].size(); i++)
     {
@@ -185,7 +182,6 @@ vector<vector<int>> neural_network::test_network()
         }
         abcd.push_back(abcd_one_class);
     }
-    
     
     return abcd;
 }

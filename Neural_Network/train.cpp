@@ -18,7 +18,7 @@ Neural Network
 
 using namespace std;
 
-// Function for reading training data
+// Reads training data and returns a tuple of the input and output
 tuple<vector<vector<double>>, vector<vector<int>>> read_data(string file)
 {
     ifstream inF;
@@ -27,6 +27,7 @@ tuple<vector<vector<double>>, vector<vector<int>>> read_data(string file)
     string one_line;
     getline(inF, one_line);  
 
+    // Read first line
     istringstream iss(one_line);
     string word;
     int input_nodes, output_nodes, num_samples;
@@ -47,6 +48,7 @@ tuple<vector<vector<double>>, vector<vector<int>>> read_data(string file)
     vector<vector<double>> input_data;
     vector<vector<int>> output_data;
 
+    // Read data lines
     while(getline(inF, one_line))
     {
         int counter = 0;
@@ -72,11 +74,13 @@ tuple<vector<vector<double>>, vector<vector<int>>> read_data(string file)
 
 }
 
+// Read a weights file and returns a tuple of w1 and w2
 tuple<vector<vector<double>>, vector<vector<double>>> read_weights(string file)
 {
     ifstream inF;
     inF.open(file);
 
+    // Read the first line
     string one_line;
     getline(inF, one_line);  
 
@@ -99,15 +103,14 @@ tuple<vector<vector<double>>, vector<vector<double>>> read_weights(string file)
     vector<vector<double>> w1;
     vector<vector<double>> w2;
 
+    // Read weight lines
     int counter = 0;
     while(getline(inF, one_line))
     {
         vector<double> tmp;
 
-
         istringstream iss(one_line);
         string word;
-
 
         while (iss >> word)
         {
@@ -124,14 +127,17 @@ tuple<vector<vector<double>>, vector<vector<double>>> read_weights(string file)
     return make_tuple(w1, w2);
 }
 
+// Print the two sets of weights to a specified file
 void print_trained_weights(string file, vector<vector<double>> w1, vector<vector<double>> w2)
 {
     ofstream outF;
     outF.open(file);
 
+    // Print first line in proper format
     outF << w1[0].size() - 1 << " " << w1.size() << " " << w2.size() << "\n";
     outF << setprecision(3) << fixed;
 
+    // Print w1
     for (int i = 0; i < w1.size(); i++)
     {
         for (int j = 0; j < w1[i].size(); j++)
@@ -143,6 +149,8 @@ void print_trained_weights(string file, vector<vector<double>> w1, vector<vector
         }
         outF << "\n";
     }
+
+    // Print w2
     for (int i = 0; i < w2.size(); i++)
     {
         for (int j = 0; j < w2[i].size(); j++)
@@ -156,7 +164,7 @@ void print_trained_weights(string file, vector<vector<double>> w1, vector<vector
     }
 }
 
-//function for testing purposes only
+// Function for development purposes only (prints 2d vectors) 
 void print_2d(vector<vector<double>> vec)
 {
     for (int i = 0; i < vec.size(); i++)
@@ -169,6 +177,7 @@ void print_2d(vector<vector<double>> vec)
     }
 }
 
+// The next four functions are helpers for the summary statistics
 double overall_accuracy(vector<int> abcd)
 {
     return (double)(abcd[0] + abcd[3]) / (abcd[0] + abcd[1] + abcd[2] + abcd[3]);
@@ -189,6 +198,7 @@ double f1(vector<int> abcd)
     return (2 * precision(abcd) * recall(abcd)) / (precision(abcd) + recall(abcd));
 }
 
+// Print the summary statistics of the neural network into specified file
 void print_results(string file, vector<vector<int>> abcd)
 {
     ofstream outF;
@@ -196,13 +206,13 @@ void print_results(string file, vector<vector<int>> abcd)
 
     outF << setprecision(3) << fixed;
     
-    // Columns: overall acc, precision, recall, F1
-    // Each row is its own class
-    vector<vector<double>> stats;
+    // For Macro calculations (saves output of each classes statistics)
+    vector<vector<double>> stats; 
 
-    // For Micro calculations
+    // For Micro calculations (will add A B C D values for each class to get totals)
     vector<int> total_vals = {0, 0, 0, 0};
 
+    // Print output for each class
     for(int i = 0; i < abcd.size(); i++)
     {
         for(int j = 0; j < abcd[0].size(); j++)
@@ -225,8 +235,6 @@ void print_results(string file, vector<vector<int>> abcd)
     outF << f1(total_vals) << "\n";
 
     // ------Macro Calculations-------
-
-    // Needed for macro f1 calculation
     double total_recall = 0;
     double total_precision = 0;
 
@@ -241,22 +249,24 @@ void print_results(string file, vector<vector<int>> abcd)
 
         outF << (total_val / stats.size()) << " ";
 
-        // To get overall values
+        // To get overall values to calculate f1 later
         if (j == 1)
             total_precision = (total_val / stats.size());
         if (j == 2)
             total_recall = (total_val / stats.size());
     }
-    // f1 (note the function utilizes the B and C values and thus cannot be used here)
+    // Print f1 (note the function utilizes the {A, B, C, D} values and thus cannot be used here)
     outF << (2 * total_precision * total_recall) / (total_precision + total_recall) << "\n";
 }
 
 //Mission control
 int main() 
 {
+    // Check if the user wants to train or test
     string train_or_test;
     cout << "Please declare whether you would like to train or test your neural network (type either train or test): \n";
     cin >> train_or_test;
+
     if(train_or_test == "train")
     {
         string initial_network_file, training_data_file, output_file;
@@ -278,13 +288,15 @@ int main()
         cout << "What do you want the learning rate of the model to be? \n";
         cin >> lr;
 
+        // Process input files
         tuple<vector<vector<double>>, vector<vector<int>>> input_output = read_data(training_data_file);
         tuple<vector<vector<double>>, vector<vector<double>>> w1_w2 = read_weights(initial_network_file);
-        //print_2d(get<0>(input_output));
 
+        // Create and train network
         neural_network nn_train(get<0>(input_output), get<0>(w1_w2), get<1>(w1_w2), get<1>(input_output), epochs, lr);
         tuple<vector<vector<double>>, vector<vector<double>>> new_w1_w2 = nn_train.train_network();
 
+        // Print new weights to output file
         print_trained_weights(output_file, get<0>(new_w1_w2), get<1>(new_w1_w2));
     }
     else if(train_or_test == "test")
@@ -300,14 +312,15 @@ int main()
         cout << "Please input the name of the results file: \n";
         cin >> results_file;
 
+        // Process input files
         tuple<vector<vector<double>>, vector<vector<int>>> input_output = read_data(testing_data_file);
         tuple<vector<vector<double>>, vector<vector<double>>> w1_w2 = read_weights(network_file);
-        //print_2d(get<1>(input_output));
-        //print_2d(get<1>(input_output));
 
+        // Create and test network
         neural_network nn_test(get<0>(input_output), get<0>(w1_w2), get<1>(w1_w2), get<1>(input_output));
         vector<vector<int>> abcd = nn_test.test_network();
 
+        // Print summary statistics
         print_results(results_file, abcd);
     }
 
