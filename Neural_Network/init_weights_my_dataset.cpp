@@ -25,7 +25,7 @@ int main()
     srand((unsigned)time(NULL));
 
     ofstream outF;
-    outF.open("my_dataset/iw.txt");
+    outF.open("my_dataset/initial_weights.txt");
 
     // Layer sizes
     int input_layer = 4;
